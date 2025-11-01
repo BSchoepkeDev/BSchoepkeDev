@@ -1,0 +1,35 @@
+//@version=5
+indicator("EMA Crossover", overlay=true)
+
+// Input parameters
+fastLength = input.int(12, minval=1, title="Fast EMA Length")
+slowLength = input.int(26, minval=1, title="Slow EMA Length")
+signalLength = input.int(9, minval=1, title="Signal SMA Length")
+
+// Calculate moving averages
+fastEMA = ta.ema(close, fastLength)
+slowEMA = ta.ema(close, slowLength)
+
+plot(fastEMA, color=color.teal, title="Fast EMA")
+plot(slowEMA, color=color.orange, title="Slow EMA")
+
+// Generate crossover signals
+bullish = ta.crossover(fastEMA, slowEMA)
+bearish = ta.crossunder(fastEMA, slowEMA)
+
+plotshape(bullish, title="Bullish Crossover", location=location.belowbar, color=color.new(color.green, 0), style=shape.triangleup, size=size.tiny)
+plotshape(bearish, title="Bearish Crossover", location=location.abovebar, color=color.new(color.red, 0), style=shape.triangledown, size=size.tiny)
+
+// Histogram for momentum
+spread = fastEMA - slowEMA
+plot(spread, title="EMA Spread", color=spread >= 0 ? color.new(color.green, 70) : color.new(color.red, 70), style=plot.style_columns)
+
+// Basic alerts
+alertcondition(bullish, title="Bullish Crossover", message="Fast EMA crossed above Slow EMA")
+alertcondition(bearish, title="Bearish Crossover", message="Fast EMA crossed below Slow EMA")
+
+// Strategy helper signals
+longSignal = bullish ? 1 : 0
+shortSignal = bearish ? -1 : 0
+var table signalTable = table.new(position.top_right, 1, 1, bgcolor=color.new(color.black, 0))
+table.cell(signalTable, 0, 0, longSignal == 1 ? "Long" : shortSignal == -1 ? "Short" : "Flat", text_color=longSignal == 1 ? color.green : shortSignal == -1 ? color.red : color.silver)
